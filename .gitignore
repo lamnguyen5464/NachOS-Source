@@ -1,1 +1,4 @@
 *.o
+*
+*.dep
+Makefile
