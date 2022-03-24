@@ -1,6 +1,6 @@
 /* add.c
  *	Simple program to test whether the systemcall interface works.
- *	
+ *
  *	Just do a add syscall that adds two values and returns the result.
  *
  */
@@ -10,9 +10,7 @@
 int
 main()
 {
-  int result;
-  
-  result = Add(42, 23);
+  Open("hello.txt");
 
   Halt();
   /* not reached */
