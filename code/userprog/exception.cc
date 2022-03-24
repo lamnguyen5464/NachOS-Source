@@ -25,10 +25,10 @@
 #include "main.h"
 #include "syscall.h"
 #include "ksyscall.h"
-#include "filesys.h"
-#include "synchconsole.h"
 
-#include <ctime>
+#include "synchconsole.h"
+#include <stdlib.h>
+#include <time.h>
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
