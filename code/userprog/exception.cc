@@ -178,6 +178,28 @@ void ExceptionHandler(ExceptionType which)
 			break;
 		}
 
+		case SC_Open:
+		{
+			// Input: arg1: Dia chi cua chuoi name, arg2: type
+			// Output: Tra ve OpenFileID neu thanh, -1 neu loi
+			// Chuc nang: Tra ve ID cua file.
+			int virtAddr = kernel->machine->ReadRegister(4); // Lay dia chi cua tham so name tu thanh ghi so 4
+			char *filename;
+			int MaxFileLength = 32;
+			filename = User2System(virtAddr, MaxFileLength);
+
+			// update 4/1/2018
+			OpenFile *openFileId = kernel->fileSystem->Open(filename);
+			if (openFileId == NULL)
+			{
+				kernel->machine->WriteRegister(2, 0);
+			}else {
+				kernel->machine->WriteRegister(2, 1);
+			}
+			delete[] filename;
+			break;
+		}
+
 		case SC_Add:
 			DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
 
