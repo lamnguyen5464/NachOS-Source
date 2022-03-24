@@ -10,7 +10,9 @@
 int
 main()
 {
-  Open("hello.txt");
+  OpenFileId * fid = Open("hello.txt");
+
+  PrintNum(Close(fid));
 
   Halt();
   /* not reached */
