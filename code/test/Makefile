@@ -40,11 +40,11 @@
 #
 #    Nachos assumes that the location of the program startup routine (the
 # 	location the kernel jumps to when the program initially starts up)
-#       is at location 0.  This means: start.o must be the first .o passed 
+#       is at location 0.  This means: start.o must be the first .o passed
 # 	to ld, in order for the routine "Start" to be loaded at location 0
 #
 #    When you make the test programs, you will see messages like these:
-#		numsections 3 
+#		numsections 3
 #		Loading 3 sections:
 #		        ".text", filepos 0xd0, mempos 0x0, size 0x440
 #		        ".data", filepos 0x510, mempos 0x440, size 0x0
@@ -112,7 +112,7 @@ ifeq ($(hosttype),unknown)
 PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
-PROGRAMS = add halt shell matmult sort segments
+PROGRAMS = add halt shell matmult sort segments test_syscall num_io char_io random str_io ascii bubblesort help create_file open_file readwrite exec test_sem sinhvien voinuoc main
 endif
 
 all: $(PROGRAMS)
@@ -156,6 +156,102 @@ matmult.o: matmult.c
 matmult: matmult.o start.o
 	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
 	$(COFF2NOFF) matmult.coff matmult
+
+test_syscall.o: test_syscall.c
+	$(CC) $(CFLAGS) -c test_syscall.c
+test_syscall: test_syscall.o start.o
+	$(LD) $(LDFLAGS) start.o test_syscall.o -o test_syscall.coff
+	$(COFF2NOFF) test_syscall.coff test_syscall
+
+num_io.o: num_io.c
+	$(CC) $(CFLAGS) -c num_io.c
+num_io: num_io.o start.o
+	$(LD) $(LDFLAGS) start.o num_io.o -o num_io.coff
+	$(COFF2NOFF) num_io.coff num_io
+
+char_io.o: char_io.c
+	$(CC) $(CFLAGS) -c char_io.c
+char_io: char_io.o start.o
+	$(LD) $(LDFLAGS) start.o char_io.o -o char_io.coff
+	$(COFF2NOFF) char_io.coff char_io
+
+random.o: random.c
+	$(CC) $(CFLAGS) -c random.c
+random: random.o start.o
+	$(LD) $(LDFLAGS) start.o random.o -o random.coff
+	$(COFF2NOFF) random.coff random
+
+str_io.o: str_io.c
+	$(CC) $(CFLAGS) -c str_io.c
+str_io: str_io.o start.o
+	$(LD) $(LDFLAGS) start.o str_io.o -o str_io.coff
+	$(COFF2NOFF) str_io.coff str_io
+
+ascii.o: ascii.c
+	$(CC) $(CFLAGS) -c ascii.c
+ascii: ascii.o start.o
+	$(LD) $(LDFLAGS) start.o ascii.o -o ascii.coff
+	$(COFF2NOFF) ascii.coff ascii
+
+bubblesort.o: bubblesort.c
+	$(CC) $(CFLAGS) -c bubblesort.c
+bubblesort: bubblesort.o start.o
+	$(LD) $(LDFLAGS) start.o bubblesort.o -o bubblesort.coff
+	$(COFF2NOFF) bubblesort.coff bubblesort
+
+help.o: help.c
+	$(CC) $(CFLAGS) -c help.c
+help: help.o start.o
+	$(LD) $(LDFLAGS) start.o help.o -o help.coff
+	$(COFF2NOFF) help.coff help
+
+create_file.o: create_file.c
+	$(CC) $(CFLAGS) -c create_file.c
+create_file: create_file.o start.o
+	$(LD) $(LDFLAGS) start.o create_file.o -o create_file.coff
+	$(COFF2NOFF) create_file.coff create_file
+
+open_file.o: open_file.c
+	$(CC) $(CFLAGS) -c open_file.c
+open_file: open_file.o start.o
+	$(LD) $(LDFLAGS) start.o open_file.o -o open_file.coff
+	$(COFF2NOFF) open_file.coff open_file
+
+readwrite.o: readwrite.c
+	$(CC) $(CFLAGS) -c readwrite.c
+readwrite: readwrite.o start.o
+	$(LD) $(LDFLAGS) start.o readwrite.o -o readwrite.coff
+	$(COFF2NOFF) readwrite.coff readwrite
+
+exec.o: exec.c
+	$(CC) $(CFLAGS) -c exec.c
+exec: exec.o start.o
+	$(LD) $(LDFLAGS) start.o exec.o -o exec.coff
+	$(COFF2NOFF) exec.coff exec
+
+test_sem.o: test_sem.c
+	$(CC) $(CFLAGS) -c test_sem.c
+test_sem: test_sem.o start.o
+	$(LD) $(LDFLAGS) start.o test_sem.o -o test_sem.coff
+	$(COFF2NOFF) test_sem.coff test_sem
+
+sinhvien.o: sinhvien.c
+	$(CC) $(CFLAGS) -c sinhvien.c
+sinhvien: sinhvien.o start.o
+	$(LD) $(LDFLAGS) start.o sinhvien.o -o sinhvien.coff
+	$(COFF2NOFF) sinhvien.coff sinhvien
+
+voinuoc.o: voinuoc.c
+	$(CC) $(CFLAGS) -c voinuoc.c
+voinuoc: voinuoc.o start.o
+	$(LD) $(LDFLAGS) start.o voinuoc.o -o voinuoc.coff
+	$(COFF2NOFF) voinuoc.coff voinuoc
+
+main.o: main.c
+	$(CC) $(CFLAGS) -c main.c
+main: main.o start.o
+	$(LD) $(LDFLAGS) start.o main.o -o main.coff
+	$(COFF2NOFF) main.coff main
 
 clean:
 	$(RM) -f *.o *.ii

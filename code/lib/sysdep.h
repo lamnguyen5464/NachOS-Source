@@ -1,11 +1,11 @@
-// sysdep.h 
+// sysdep.h
 //	System-dependent interface.  Nachos uses the routines defined
 //	here, rather than directly calling the UNIX library functions, to
 //	simplify porting between versions of UNIX, and even to
 //	other systems, such as MSDOS and the Macintosh.
 //
 // Copyright (c) 1992-1996 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef SYSDEP_H
@@ -23,7 +23,7 @@ using namespace std;
 extern void Abort();
 extern void Exit(int exitCode);
 extern void Delay(int seconds);
-extern void UDelay(unsigned int usec);// rcgood - to avoid spinners.
+extern void UDelay(unsigned int usec);  // rcgood - to avoid spinners.
 
 // Initialize system so that cleanUp routine is called when user hits ctl-C
 extern void CallOnUserAbort(void (*cleanup)(int));
@@ -44,6 +44,7 @@ extern bool PollFile(int fd);
 // File operations: open/read/write/lseek/close, and check for error
 // For simulating the disk and the console devices.
 extern int OpenForWrite(char *name);
+extern int OpenForRead(char *name, bool crashOnError);
 extern int OpenForReadWrite(char *name, bool crashOnError);
 extern void Read(int fd, char *buffer, int nBytes);
 extern int ReadPartial(int fd, char *buffer, int nBytes);
@@ -70,6 +71,7 @@ extern void AssignNameToSocket(char *socketName, int sockID);
 extern void DeAssignNameToSocket(char *socketName);
 extern bool PollSocket(int sockID);
 extern void ReadFromSocket(int sockID, char *buffer, int packetSize);
-extern void SendToSocket(int sockID, char *buffer, int packetSize,char *toName);
+extern void SendToSocket(int sockID, char *buffer, int packetSize,
+                         char *toName);
 
-#endif // SYSDEP_H
+#endif  // SYSDEP_H

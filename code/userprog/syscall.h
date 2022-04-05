@@ -35,18 +35,19 @@
 #define SC_ThreadExit 14
 #define SC_ThreadJoin 15
 
-#define SC_ReadNum 16
-#define SC_PrintNum 17
-#define SC_ReadChar 18
-#define SC_PrintChar 19
-#define SC_RandomNum 20
-#define SC_ReadString 21
-#define SC_PrintString 22
-#define SC_Help 23
-#define SC_Ascii 24
-#define SC_Sort 25
-
 #define SC_Add 42
+#define SC_ReadNum 43
+#define SC_PrintNum 44
+#define SC_ReadChar 45
+#define SC_PrintChar 46
+#define SC_RandomNum 47
+#define SC_ReadString 48
+#define SC_PrintString 49
+#define SC_CreateFile 50
+#define SC_CreateSemaphore 51
+#define SC_Wait 52
+#define SC_Signal 53
+#define SC_GetPid 54
 
 #ifndef IN_ASM
 
@@ -63,43 +64,25 @@
 /* Stop Nachos, and print out performance stats */
 void Halt();
 
-/* Read an integer number*/
-int ReadNum();
-
-/*
- * Print an integer number
- */
-void PrintNum(int num);
-
-/*
- * Read a character
- */
-char ReadChar();
-
-/*
- * Print single character
- */
-void PrintChar(char character);
-
-/*
- * Create an random number
- */
-int RandomNum();
-
-/*
- * Read the string
- */
-void ReadString(char buffer[], int length);
-
-/*
- * Print the string
- */
-void PrintString(char buffer[]);
 /*
  * Add the two operants and return the result
  */
 
 int Add(int op1, int op2);
+
+int ReadNum();
+
+void PrintNum(int num);
+
+char ReadChar();
+
+void PrintChar(char character);
+
+int RandomNum();
+
+void ReadString(char *buffer, int length);
+
+void PrintString(char *buffer);
 
 /* Address space control operations: Exit, Exec, Execv, and Join */
 
@@ -146,13 +129,15 @@ typedef int OpenFileId;
  * the console device.
  */
 
-#define ConsoleInputt 0
-#define ConsoleOutputt 1
+#define _ConsoleInput 0   // Change define name to avoid duplication
+#define _ConsoleOutput 1  // Same as above
 
 /* Create a Nachos file, with name "name" */
 /* Note: Create does not open the file.   */
 /* Return 1 on success, negative error code on failure */
 int Create(char *name);
+
+int CreateFile(char *name);
 
 /* Remove a Nachos file, with name "name" */
 int Remove(char *name);
@@ -160,7 +145,9 @@ int Remove(char *name);
 /* Open the Nachos file "name", and return an "OpenFileId" that can
  * be used to read and write to the file.
  */
-OpenFileId Open(char *name);
+// OpenFileId Open(char *name);
+
+OpenFileId Open(char *name, int type);
 
 /* Write "size" bytes from "buffer" to the open file.
  * Return the number of bytes actually read on success.
@@ -185,6 +172,15 @@ int Seek(int position, OpenFileId id);
  * Return 1 on success, negative error code on failure
  */
 int Close(OpenFileId id);
+
+// Ham cho semaphore
+// Success: 0 - Failed: -1
+// Ham tao 1 semaphore voi ten semaphore
+int CreateSemaphore(char *name, int semval);
+
+int Wait(char *name);
+
+int Signal(char *name);
 
 /* User-level thread operations: Fork and Yield.  To allow multiple
  * threads to run within a user program.
