@@ -7,10 +7,9 @@
 
 #include "syscall.h"
 
-int
-main()
+int main()
 {
-  OpenFileId * fid = Open("hello.txt");
+  OpenFileId *fid = Open("hello.txt");
 
   PrintNum(Close(fid));
 
