@@ -9,9 +9,15 @@
 
 int main()
 {
-  OpenFileId *fid = Open("hello.txt");
+  const int size = 100;
 
-  PrintNum(Close(fid));
+  char buffer[1000];
+
+  OpenFileId fid = Open("hello.txt");
+
+  Read(buffer, size, fid);
+
+  // PrintNum(Close(fid));
 
   Halt();
   /* not reached */
