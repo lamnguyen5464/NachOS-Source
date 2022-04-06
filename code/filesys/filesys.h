@@ -43,6 +43,11 @@
 class FileSystem
 {
 public:
+
+	OpenFile *listOpenedFiles[10000];
+	char* listOpenFileNames[10000];
+	int numOfOpenedFiles = 0;
+
 	FileSystem() {}
 
 	bool Create(char *name)
@@ -89,11 +94,9 @@ public:
 
 	void Print(); // List all the files and their contents
 
+	
+
 private:
-	// OpenFile listOpenFiles[1000];
-
-	//  listOpenFile[fid] = file (OpenFile)
-
 	OpenFile *freeMapFile;	 // Bit map of free disk blocks,
 							 // represented as a file
 	OpenFile *directoryFile; // "Root" directory -- list of

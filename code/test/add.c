@@ -13,11 +13,32 @@ int main()
 
   char buffer[1000];
 
-  OpenFileId fid = Open("hello.txt");
+  OpenFileId fileId1, fileId2;
+  int i;
+  int fileLength;
 
-  Read(buffer, size, fid);
+  fileId1 = Open("hello.txt");
+  fileId2 = Open("hello1.txt");
 
-  // PrintNum(Close(fid));
+  fileLength = Read(buffer, size, fileId1);
+
+  PrintNum(fileLength);
+
+  // Seek(2, fileId2);
+
+  Write(buffer, fileLength, fileId2);
+
+
+
+  // Read(buffer, size, fileId2);
+  // PrintNum(buffer[0]);
+
+
+  PrintNum(Close(fileId1));
+  PrintNum(Close(fileId2));
+
+  Remove("hello1.txt");
+
 
   Halt();
   /* not reached */

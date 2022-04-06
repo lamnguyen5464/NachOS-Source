@@ -115,7 +115,7 @@ void ExceptionHandler(ExceptionType which)
 
     OpenFile *openFile;
 
-    DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
+    // DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
 
     switch (which)
     {
@@ -132,10 +132,6 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_Create:
         {
-            // Input: Dia chi tu vung nho user cua ten file
-            // Output: -1 = Loi, 0 = Thanh cong
-            // Chuc nang: Tao ra file voi tham so la ten file
-
             char *filename;
             DEBUG(dbgSys, " CreateFile call ...\n");
 
@@ -188,27 +184,62 @@ void ExceptionHandler(ExceptionType which)
             int virtAddr = kernel->machine->ReadRegister(4);
             char *filename;
             int MaxFileLength = 32;
+            int currentFileId = kernel->fileSystem->numOfOpenedFiles;
+            int lengthOfName = strlen(filename);
+            int i;
+
+            // increase file iterator
+
+            kernel->fileSystem->numOfOpenedFiles = (kernel->fileSystem->numOfOpenedFiles + 1) % 10000;
+
+
             filename = User2System(virtAddr, MaxFileLength);
 
-            openFile = kernel->fileSystem->Open(filename);
-            kernel->machine->WriteRegister(2, int(openFile));
+            // DEBUG(dbgSys, "currentFileId: " << currentFileId << "\n");
+            // DEBUG(dbgSys, "filename: " << filename << "\n");
+
+
+            OpenFile* file = kernel->fileSystem->Open(filename);
+            if (file == NULL) {
+                kernel->machine->WriteRegister(2, -1);
+                IncreasePC();
+                return;
+            }
+            kernel->fileSystem->listOpenedFiles[currentFileId] = file;
+            char* cloneName;
+
+            // copy name;
+            strcpy(cloneName, filename)
+
+            // for(i = 0; i <= lengthOfName; i++) {
+            //     cloneName[i] = filename[i];
+            // }
+            // cloneName[lengthOfName+1] = '\0';
+
+            DEBUG(dbgSys, "cloneName: " << cloneName << "\n");
+            
+
+            kernel->fileSystem->listOpenFileNames[currentFileId] = cloneName;
+
+            kernel->machine->WriteRegister(2, currentFileId);
             IncreasePC();
             return;
-            break;
         }
 
         case SC_Close:
         {
-            OpenFileId *openFileId = (OpenFileId *)kernel->machine->ReadRegister(4); // Lay id cua file tu thanh ghi so 4
+            OpenFileId openFileId = (OpenFileId)kernel->machine->ReadRegister(4); // Lay id cua file tu thanh ghi so 4
 
-            if (openFileId == NULL)
+            OpenFile *currentFile = kernel->fileSystem->listOpenedFiles[(int)openFileId];
+
+            if (currentFile == NULL)
             {
                 kernel->machine->WriteRegister(2, -1);
             }
             else
             {
-                delete openFileId;
-                kernel->machine->WriteRegister(2, 1);
+                delete currentFile;
+                kernel->machine->WriteRegister(2, (int)openFileId);
             }
             IncreasePC();
             return;
@@ -217,160 +248,135 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_Read:
         {
-            // Input: buffer(char*), so ky tu(int), id cua file(OpenFileID)
-            // Output: -1: Loi, So byte read thuc su: Thanh cong, -2: Thanh cong
-            // Cong dung: Doc file voi tham so la buffer, so ky tu cho phep va id cua file
-            int virtAddr = kernel->machine->ReadRegister(4);        // Lay dia chi cua tham so buffer tu thanh ghi so 4
-            int charcount = kernel->machine->ReadRegister(5);       // Lay charcount tu thanh ghi so 5
-            int openFileId = (int)kernel->machine->ReadRegister(6); // Lay id cua file tu thanh ghi so 6
+            int virtAddr = kernel->machine->ReadRegister(4); 
+            int charcount = kernel->machine->ReadRegister(5); 
+            int openFileId = (int)kernel->machine->ReadRegister(6);
             int OldPos;
             int NewPos;
             char *buf;
+            int size;
 
-            DEBUG(dbgSys, "228\n");
+            OpenFile *file = kernel->fileSystem->listOpenedFiles[(int)openFileId];
 
-            OpenFile *file = openFile;
-            // = new OpenFile(openFileId);
+            DEBUG(dbgSys, "Start reading:\n");
+            DEBUG(dbgSys, "currentFileId: " << openFileId << "\n");
 
-            buf = new char[file->Length() + 1];
-            DEBUG(dbgSys, "231\n");
+            size = file->Length() + 1;
 
-            file->Read(buf, file->Length());
+            buf = new char[size];
 
-            DEBUG(dbgSys, "234\n");
-            DEBUG(dbgSys, buf[0]);
-            DEBUG(dbgSys, buf[1]);
+            file->Read(buf, size - 1);
 
-            file->Write(buf, file->Length());
+            System2User(virtAddr, size, buf);
+            kernel->machine->WriteRegister(2, size - 1);
 
-            // // Kiem tra id cua file truyen vao co nam ngoai bang mo ta file khong
-            // if (openFileId < 0 || openFileId > 14)
-            // {
-            //     printf("\nKhong the read vi id nam ngoai bang mo ta file.");
-            //     kernel->machine->WriteRegister(2, -1);
-            //     IncreasePC();
-            //     return;
-            // }
-            // Kiem tra file co ton tai khong
-            // if ((OpenFileId *)openFileId == NULL)
-            // {
-            //     DEBUG(dbgSys, "nKhong the read vi file nay khong ton tai.\n");
-            //     kernel->machine->WriteRegister(2, -1);
-            //     IncreasePC();
-            //     return;
-            // }
-
-            // DEBUG(dbgSys, "\n244\n");
-            // if ((int)openFileId == 3) // Xet truong hop doc file stdout (type quy uoc la 3) thi tra ve -1
-            // {
-            //     DEBUG(dbgSys, "\nKhong the read file stdout.\n");
-            //     kernel->machine->WriteRegister(2, -1);
-            //     IncreasePC();
-            //     return;
-            // }
-
-            // DEBUG(dbgSys, "\n251\n");
-            // OldPos = kernel->fileSystem->openf[id]->GetCurrentPos(); // Kiem tra thanh cong thi lay vi tri OldPos
-            // buf = User2System(virtAddr, charcount);                  // Copy chuoi tu vung nho User Space sang System Space voi bo dem buffer dai charcount
-            // // Xet truong hop doc file stdin (type quy uoc la 2)
-            // if (kernel->fileSystem->openf[id]->type == 2)
-            // {
-            //     // Su dung ham Read cua lop SynchConsole de tra ve so byte thuc su doc duoc
-            //     int size = gSynchConsole->Read(buf, charcount);
-            //     System2User(virtAddr, size, buf);        // Copy chuoi tu vung nho System Space sang User Space voi bo dem buffer co do dai la so byte thuc su
-            //     kernel->machine->WriteRegister(2, size); // Tra ve so byte thuc su doc duoc
-            //     delete buf;
-            //     IncreasePC();
-            //     return;
-            // }
-
-            // DEBUG(dbgSys, "\n270\n");
-            // // Xet truong hop doc file binh thuong thi tra ve so byte thuc su
-            // if ((fileSystem->openf[id]->Read(buf, charcount)) > 0)
-            // {
-            //     // So byte thuc su = NewPos - OldPos
-            //     NewPos = fileSystem->openf[id]->GetCurrentPos();
-            //     // Copy chuoi tu vung nho System Space sang User Space voi bo dem buffer co do dai la so byte thuc su
-            //     System2User(virtAddr, NewPos - OldPos, buf);
-            //     kernel->machine->WriteRegister(2, NewPos - OldPos);
-            // }
-            // else
-            // {
-            //     // Truong hop con lai la doc file co noi dung la NULL tra ve -2
-            //     // printf("\nDoc file rong.");
-            //     kernel->machine->WriteRegister(2, -2);
-            // }
             delete buf;
             IncreasePC();
             return;
         }
 
-            // case SC_Write:
-            // {
-            // Input: buffer(char*), so ky tu(int), id cua file(OpenFileID)
-            // Output: -1: Loi, So byte write thuc su: Thanh cong, -2: Thanh cong
-            // Cong dung: Ghi file voi tham so la buffer, so ky tu cho phep va id cua file
-            // 	int virtAddr = kernel->machine->ReadRegister(4);	// Lay dia chi cua tham so buffer tu thanh ghi so 4
-            // 	int charcount = machine->ReadRegister(5); // Lay charcount tu thanh ghi so 5
-            // 	int id = machine->ReadRegister(6);				// Lay id cua file tu thanh ghi so 6
-            // 	int OldPos;
-            // 	int NewPos;
-            // 	char *buf;
-            // 	// Kiem tra id cua file truyen vao co nam ngoai bang mo ta file khong
-            // 	if (id < 0 || id > 14)
-            // 	{
-            // 		printf("\nKhong the write vi id nam ngoai bang mo ta file.");
-            // 		machine->WriteRegister(2, -1);
-            // 		IncreasePC();
-            // 		return;
-            // 	}
-            // 	// Kiem tra file co ton tai khong
-            // 	if (kernel->fileSystem->openf[id] == NULL)
-            // 	{
-            // 		printf("\nKhong the write vi file nay khong ton tai.");
-            // 		machine->WriteRegister(2, -1);
-            // 		IncreasePC();
-            // 		return;
-            // 	}
-            // 	// Xet truong hop ghi file only read (type quy uoc la 1) hoac file stdin (type quy uoc la 2) thi tra ve -1
-            // 	if (kernel->fileSystem->openf[id]->type == 1 || kernel->fileSystem->openf[id]->type == 2)
-            // 	{
-            // 		printf("\nKhong the write file stdin hoac file only read.");
-            // 		machine->WriteRegister(2, -1);
-            // 		IncreasePC();
-            // 		return;
-            // 	}
-            // 	OldPos = fileSystem->openf[id]->GetCurrentPos(); // Kiem tra thanh cong thi lay vi tri OldPos
-            // 	buf = User2System(virtAddr, charcount);					 // Copy chuoi tu vung nho User Space sang System Space voi bo dem buffer dai charcount
-            // 	// Xet truong hop ghi file read & write (type quy uoc la 0) thi tra ve so byte thuc su
-            // 	if (fileSystem->openf[id]->type == 0)
-            // 	{
-            // 		if ((fileSystem->openf[id]->Write(buf, charcount)) > 0)
-            // 		{
-            // 			// So byte thuc su = NewPos - OldPos
-            // 			NewPos = fileSystem->openf[id]->GetCurrentPos();
-            // 			machine->WriteRegister(2, NewPos - OldPos);
-            // 			delete buf;
-            // 			IncreasePC();
-            // 			return;
-            // 		}
-            // 	}
-            // 	if (fileSystem->openf[id]->type == 3) // Xet truong hop con lai ghi file stdout (type quy uoc la 3)
-            // 	{
-            // 		int i = 0;
-            // 		while (buf[i] != 0 && buf[i] != '\n') // Vong lap de write den khi gap ky tu '\n'
-            // 		{
-            // 			gSynchConsole->Write(buf + i, 1); // Su dung ham Write cua lop SynchConsole
-            // 			i++;
-            // 		}
-            // 		buf[i] = '\n';
-            // 		gSynchConsole->Write(buf + i, 1); // Write ky tu '\n'
-            // 		machine->WriteRegister(2, i - 1); // Tra ve so byte thuc su write duoc
-            // 		delete buf;
-            // 		IncreasePC();
-            // 		return;
-            // 	}
-            // }
+        case SC_Write:
+        {
+            int virtAddr = kernel->machine->ReadRegister(4);
+            int sizeOfInput = kernel->machine->ReadRegister(5); 
+            int openFileId = kernel->machine->ReadRegister(6);
+
+            OpenFile *file = kernel->fileSystem->listOpenedFiles[(int)openFileId];
+
+            char *buffer = User2System(virtAddr, sizeOfInput);
+
+            file->Write(buffer, sizeOfInput);
+
+            IncreasePC();
+            return;
+        }
+
+        case SC_Remove:
+        {
+            char *filename;     // name of file that will be removed
+            int virtAddr = kernel->machine->ReadRegister(4); 
+            int MaxFileLength = 32;
+            filename = User2System(virtAddr, MaxFileLength + 1);
+            bool isOpen = false;
+            bool isMatch = false;
+            int indexOfFile = 0;
+            int i = 0, j = 0;           // iterator that we use in this function
+            bool isRemoved = false;
+
+            DEBUG(dbgSys, "Start removing file: " << filename << "\n");
+
+            for(i = 0; i < 5; i++) {       // scan through all stored openFile to find the file that have the same name with current file
+                isMatch = true;     // detect if the name is matching 
+
+                char *currentFileName = kernel->fileSystem->listOpenFileNames[i];
+
+
+                if (kernel->fileSystem->listOpenedFiles[i] != NULL || currentFileName == NULL ) {
+                    // this file is being opened
+                    continue;
+                }
+                
+                if (strlen(currentFileName) != strlen(filename)) {
+                    continue;
+                }
+                isMatch = strcmp(filename, currentFileName);
+
+                DEBUG(dbgSys, "FileName: " << filename << "\n");
+                DEBUG(dbgSys, "currentFileName: " << filename <<"\n");
+                DEBUG(dbgSys, "isMatch: " << isMatch <<"\n");
+
+
+
+                // for(j = 0; j < strlen(currentFileName); j++) {
+                //     if (filename[j] != currentFileName[j]) {
+                //         isMatch = false;
+                //         break;
+                //     }
+                // }
+
+                if (isMatch) {
+                    isOpen = true;
+                    indexOfFile = i;
+                    break;
+                }
+            }
+
+            DEBUG(dbgSys, "is open: " << isOpen << "\n");
+
+            if (isOpen) {
+                DEBUG(dbgSys, "File is opening!" << "\n");
+                kernel->machine->WriteRegister(2, 0);
+            } else {
+                char *fileName = kernel->fileSystem->listOpenFileNames[indexOfFile];
+
+                isRemoved = kernel->fileSystem->Remove(fileName);
+
+                if (!isRemoved) {
+                    DEBUG(dbgSys, "Remove that bai" << "\n");
+                    kernel->machine->WriteRegister(2, 0);
+                } else{
+                    kernel->machine->WriteRegister(2, 1);
+                }
+            }
+
+            IncreasePC();
+            return;
+
+        }
+
+        case SC_Seek: 
+        {
+            int position = (OpenFileId)kernel->machine->ReadRegister(4);
+            OpenFileId openFileId = (OpenFileId)kernel->machine->ReadRegister(5);
+
+            OpenFile *currentFile = kernel->fileSystem->listOpenedFiles[(int)openFileId];
+
+            currentFile->Seek(position != -1 ? position : currentFile->Length());
+
+            IncreasePC();
+            return;
+
+        }
 
         case SC_Add:
             DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
