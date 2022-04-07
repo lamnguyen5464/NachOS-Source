@@ -9,29 +9,49 @@
 
 int main(int argc, char *argv[0])
 {
-
-	char *fileName = argv[0];
+	char fileName1[100];
+	char fileName2[100];
 	int size = 10000;
-	char name[size];
+	char buffer[size];
+	int fileLength;
+	OpenFileId fileId1, fileId2;
 
-	if (fileName != NULL) {
-		CreateFile(fileName);
-	} else {
-		PrintString("Enter fileName (enter '0' to stop): ");
+	fileName1 = argv[0];
+	fileName2 = argv[1];
 
-		do {
-			ReadString(name, size);
-
-			PrintString(name);
-			CreateFile(name);
-
-		 	if (name != NULL && strlen(name) == 1 && name[0] == '0'){
-				 break;
-			 }
-		} while (true);
+	if (fileName1 != NULL)
+	{
+		fileId1 = Open(fileName1);
+		if (fileId1 != -1)
+		{
+			fileLength = Read(buffer, size, fileId1);
+			buffer[fileLength] = '\0';
+			if (fileName2 != NULL)
+			{
+				fileId2 = Open(fileName2);
+			}
+			else
+			{
+				Createfile(fileName2);
+				fileId2 = Open(fileName2);
+			}
+			if (fileId2 != NULL)
+			{
+				Seek(-1, fileId2);
+				Write(buffer, fileLength, fileId2);
+				Close(fileId2);
+			}
+			Close(fileId1);
+		}
+		else
+		{
+			PrintString("Can not open your file.");
+		}
 	}
-    Remove("hello.txt");
+	else
+	{
+		PrintString("Your file does not exist.");
+	}
 
-
-  	Halt();
+	Halt();
 }

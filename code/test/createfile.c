@@ -21,7 +21,6 @@ int main(int argc, char *argv[0])
 
 		do {
 			ReadString(name, size);
-
 			PrintString(name);
 			CreateFile(name);
 
