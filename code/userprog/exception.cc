@@ -113,9 +113,8 @@ void ExceptionHandler(ExceptionType which)
 {
     int type = kernel->machine->ReadRegister(2);
 
-    OpenFile *openFile;
 
-    // DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
+    DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
 
     switch (which)
     {
@@ -206,10 +205,10 @@ void ExceptionHandler(ExceptionType which)
                 return;
             }
             kernel->fileSystem->listOpenedFiles[currentFileId] = file;
-            char* cloneName;
+            char* cloneName = new char[100];
 
             // copy name;
-            strcpy(cloneName, filename)
+            strcpy(cloneName, filename);
 
             // for(i = 0; i <= lengthOfName; i++) {
             //     cloneName[i] = filename[i];

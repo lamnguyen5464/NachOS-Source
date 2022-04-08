@@ -12,11 +12,7 @@ int main(int argc, char *argv[0])
 
 	char *fileName = argv[0];
 
-	if (fileName != NULL) {
-		Remove(fileName);
-	} else {
-		PrintString("Your file does not exists.");
-	}
+	Remove(fileName);
 
-  Halt();
+  	Halt();
 }
