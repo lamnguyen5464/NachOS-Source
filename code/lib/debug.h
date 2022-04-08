@@ -47,9 +47,9 @@ extern Debug *debug;
 // DEBUG
 //      If flag is enabled, print a message.
 //----------------------------------------------------------------------
-#define DEBUG(flag,expr)                                                     
-    if (!debug->IsEnabled(flag)) {} else { 				
-        cerr << expr << "n";   				        
+#define DEBUG(flag,expr)                                                     \
+    if (!debug->IsEnabled(flag)) {} else { 				\
+        cerr << expr << "\n";   				        \
     }
 
 
@@ -61,10 +61,10 @@ extern Debug *debug;
 //	NOTE: needs to be a #define, to be able to print the location 
 //	where the error occurred.
 //----------------------------------------------------------------------
-#define ASSERT(condition)                                               
-    if (condition) {} else { 						
-	cerr << "Assertion failed: line " << __LINE__ << " file " << __FILE__ << "n";      
-        Abort();                                                              
+#define ASSERT(condition)                                               \
+    if (condition) {} else { 						\
+	cerr << "Assertion failed: line " << __LINE__ << " file " << __FILE__ << "\n";      \
+        Abort();                                                              \
     }
 
 //----------------------------------------------------------------------
@@ -77,20 +77,20 @@ extern Debug *debug;
 //	where the error occurred.
 //----------------------------------------------------------------------
 
-#define ASSERTNOTREACHED()                                             
-    { 						
-	cerr << "Assertion failed: line " << __LINE__ << " file " << __FILE__ << "n";      
-        Abort();                                                              
+#define ASSERTNOTREACHED()                                             \
+    { 						\
+	cerr << "Assertion failed: line " << __LINE__ << " file " << __FILE__ << "\n";      \
+        Abort();                                                              \
     }
 
 //----------------------------------------------------------------------
 // ASSERTUNIMPLEMENTED
 //     Print a message that unimplemented code is executed and dump core
 //----------------------------------------------------------------------
-#define UNIMPLEMENTED()                                                      
-{                                                                            
-  cerr << "Reached UNIMPLEMENTED function " << __FUNCTION__ << " in file: "  
-       << __FILE__ << " line: " << __LINE__ << ".n";                        
+#define UNIMPLEMENTED()                                                      \
+{                                                                            \
+  cerr << "Reached UNIMPLEMENTED function " << __FUNCTION__ << " in file: "  \
+       << __FILE__ << " line: " << __LINE__ << ".\n";                        \
 }
 
 #endif // DEBUG_H
