@@ -146,28 +146,17 @@ void ExceptionHandler(ExceptionType which)
             // Get the value of the filename from the address.
             int MaxFileLength = 32;
             filename = User2System(virtAddr, MaxFileLength + 1);
-
-            if (strlen(filename) == 0) { // user argfileName from command line
+            // Read arguments from the command lines.
+            if (strlen(filename) == 0) {
                 filename = argFileName1 != NULL ? argFileName1 : argFileName2;
-                kernel -> tempArgv[0] = NULL;;
+                kernel -> tempArgv[0] = NULL;
             }
-
-            DEBUG(dbgSys, "filename" << filename << "\n");
-
-            if (filename != NULL && strlen(filename) == 0)
+            DEBUG(dbgSys, "Check filename command line:" << filename << "\n");
+            // Check if a filename is available or not.
+            if (filename == NULL || strlen(filename) == 0)
             {
                 DEBUG(dbgSys, "Invalid fileName\n");
                 kernel->machine->WriteRegister(2, -1); // Return -1 if not valid.
-                IncreasePC();
-                return;
-                break;
-            }
-            // Check if the file name length is valid.
-            if (filename == NULL)
-            {
-                DEBUG(dbgSys, "Invalid fileName\n");
-                kernel->machine->WriteRegister(2, -1); // Return -1 if not valid.
-                delete filename;
                 IncreasePC();
                 return;
                 break;
@@ -201,26 +190,22 @@ void ExceptionHandler(ExceptionType which)
             int currentFileId = kernel->fileSystem->numOfOpenedFiles;
             int lengthOfName = strlen(filename);
             int i;
-
             // Get the string filename from the virtAddress.
             filename = User2System(virtAddr, MaxFileLength);
-            // Call the function from the kernel to create the filename
 
             if (strlen(filename) == 0) { // user argfileName from command line
                 filename = argFileName1 != NULL ? argFileName1 : argFileName2;
                 kernel -> tempArgv[0] = NULL;;
             }
 
-	    DEBUG(dbgSys, "Opening file: " << filename << "\n");
-
+	        DEBUG(dbgSys, "Opening file: " << filename << "\n");
+            // Check if the filename is valid or not.
             if (filename == NULL) {
                 kernel->machine->WriteRegister(2, -1);
                 IncreasePC();
                 return;
             }
-
             OpenFile* file = kernel->fileSystem->Open(filename);
-
             if (file == NULL) { // Return -1 if open file fails.
                 kernel->machine->WriteRegister(2, -1);
                 IncreasePC();
@@ -230,13 +215,11 @@ void ExceptionHandler(ExceptionType which)
             kernel->fileSystem->numOfOpenedFiles = (kernel->fileSystem->numOfOpenedFiles + 1) % 10000;
             // Store the file id opening.
             kernel->fileSystem->listOpenedFiles[currentFileId] = file;
-
             // Create the clone variable to store the filename.
             char* cloneName = new char[100];
             // Copy name.
             strcpy(cloneName, filename);
             DEBUG(dbgSys, "cloneName: " << cloneName << "\n");
-
             // Store the file name opening.
             kernel->fileSystem->listOpenFileNames[currentFileId] = cloneName;
             kernel->machine->WriteRegister(2, currentFileId);
@@ -291,7 +274,7 @@ void ExceptionHandler(ExceptionType which)
                 // Return the length of the file's content.
                 kernel->machine->WriteRegister(2, size - 1);
             }
-            else // If file is not opened.
+            else // If file is not opened. --> fail.
             {
                 kernel->machine->WriteRegister(2, -1);
             }
@@ -314,7 +297,7 @@ void ExceptionHandler(ExceptionType which)
                 char *buffer = User2System(virtAddr, sizeOfInput);
                 file->Write(buffer, sizeOfInput);
                 kernel->machine->WriteRegister(2, sizeOfInput);
-            } else { // The file is not opened.
+            } else { // The file is not opened. --> fail.
                 kernel->machine->WriteRegister(2, -1);
             }
             IncreasePC();
@@ -388,7 +371,7 @@ void ExceptionHandler(ExceptionType which)
 
                 // Return -1 if removed failed and 0 if success.
                 if (!isRemoved) {
-                    DEBUG(dbgSys, "Remove that bai" << "\n");
+                    DEBUG(dbgSys, "Remove fails" << "\n");
                     kernel->machine->WriteRegister(2, -1);
                 } else{
                     kernel->machine->WriteRegister(2, 0);
