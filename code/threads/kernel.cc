@@ -36,7 +36,26 @@ Kernel::Kernel(int argc, char **argv)
     reliability = 1;            // network reliability, default is 1.0
     hostName = 0;               // machine id, also UNIX socket name
                                 // 0 is the default machine id
+
+
     for (int i = 1; i < argc; i++) {
+
+        // store arguments inputted from command line
+        if (strcmp(argv[i], "-x") == 0) {
+            if (i + 2 < argc) {
+                tempArgv[0] = new char[strlen(argv[i+2]) + 1];
+                strcpy(tempArgv[0], argv[i+2]);
+                // cout << tempArgv[0] << "\n";
+            }
+            if (i + 3 < argc) {
+                tempArgv[1] = new char[strlen(argv[i+3]) + 1];
+                strcpy(tempArgv[1], argv[i+3]);
+                // cout << tempArgv[1] << "\n";
+            }
+            continue;
+        }
+
+
         if (strcmp(argv[i], "-rs") == 0) {
  	    ASSERT(i + 1 < argc);
 	    RandomInit(atoi(argv[i + 1]));// initialize pseudo-random

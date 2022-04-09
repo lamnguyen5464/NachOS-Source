@@ -116,11 +116,19 @@ void ExceptionHandler(ExceptionType which)
 
     DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
 
+    char *argFileName1 = kernel -> tempArgv[0];
+    char *argFileName2 = kernel -> tempArgv[1];
+
     switch (which)
     {
     case SyscallException:
         switch (type)
         {
+        case SC_ExecV:
+        {
+
+            break;
+        }
         case SC_Halt:
             DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
 
@@ -140,7 +148,14 @@ void ExceptionHandler(ExceptionType which)
             int MaxFileLength = 32;
             filename = User2System(virtAddr, MaxFileLength + 1);
 
-            if (strlen(filename) == 0)
+            if (strlen(filename) == 0) { // user argfileName from command line
+                filename = argFileName1 != NULL ? argFileName1 : argFileName2;
+                argFileName1 = NULL;
+            }
+
+            DEBUG(dbgSys, "argFileName1" << argFileName1 << "\n");
+
+            if (filename != NULL && strlen(filename) == 0)
             {
                 DEBUG(dbgSys, "Invalid fileName\n");
                 kernel->machine->WriteRegister(2, -1); // Return -1 vao thanh ghi R2
@@ -194,9 +209,16 @@ void ExceptionHandler(ExceptionType which)
 
             filename = User2System(virtAddr, MaxFileLength);
 
-            // DEBUG(dbgSys, "currentFileId: " << currentFileId << "\n");
-            // DEBUG(dbgSys, "filename: " << filename << "\n");
+            if (strlen(filename) == 0) { // user argfileName from command line
+                filename = argFileName1 != NULL ? argFileName1 : argFileName2;
+                argFileName1 = NULL;
+            }
 
+            if (filename == NULL) {
+                kernel->machine->WriteRegister(2, -1);
+                IncreasePC();
+                return;
+            }
 
             OpenFile* file = kernel->fileSystem->Open(filename);
             if (file == NULL) {
@@ -301,6 +323,11 @@ void ExceptionHandler(ExceptionType which)
             int indexOfFile = 0;
             int i = 0, j = 0;           // iterator that we use in this function
             bool isRemoved = false;
+
+            if (strlen(filename) == 0) { // user argfileName from command line
+                filename = argFileName1 != NULL ? argFileName1 : argFileName2;
+                argFileName1 = NULL;
+            }
 
             DEBUG(dbgSys, "Start removing file: " << filename << "\n");
 
@@ -628,3 +655,4 @@ void ExceptionHandler(ExceptionType which)
     }
     ASSERTNOTREACHED();
 }
+

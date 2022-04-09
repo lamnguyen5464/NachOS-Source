@@ -7,30 +7,25 @@
 
 #include "syscall.h"
 
-int main(int argc, char *argv[0])
+int main()
 {
-
-	char *fileName = argv[0];
-	int size = 10000;
-	char buffer[size];
-	int fileLength;
-	OpenFileId fileId;
-
-	/*
-	fileName = argv[0];
-	
-
-			fileId = Open(fileName);
-
-			if (fileId != -1) {
-				fileLength = Read(buffer, size, fileId);
-				buffer[fileLength] = '\0';
-				PrintString(buffer);
-				Close(fileId);
-			}
+	int size = 100;	// maximun length of file name
+	char buffer[size];	// buffer to store
+	int fileLength;		// length of the file
+	OpenFileId fileId;		// fileId
 
 
-			*/
+	fileId = Open(""); 	// read file name from command line
+
+	if (fileId != -1) {		// if can open file
+		fileLength = Read(buffer, size, fileId);		// file content of file to buffer
+		buffer[fileLength] = '\0';			// set terminating null
+		PrintString(buffer);		// print in console
+		PrintString("\n");
+		Close(fileId);			// close file
+	} else {
+		PrintString("Failed to open file\n");
+	}
 	
   	Halt();
 }
