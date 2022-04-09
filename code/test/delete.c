@@ -7,12 +7,8 @@
 
 #include "syscall.h"
 
-int main(int argc, char *argv[0])
+int main()
 {
-
-	char *fileName = argv[0];
-
-	Remove(fileName);
-
+	Remove(""); // get file name from agrv
   	Halt();
 }

@@ -150,10 +150,10 @@ void ExceptionHandler(ExceptionType which)
 
             if (strlen(filename) == 0) { // user argfileName from command line
                 filename = argFileName1 != NULL ? argFileName1 : argFileName2;
-                argFileName1 = NULL;
+                kernel -> tempArgv[0] = NULL;;
             }
 
-            DEBUG(dbgSys, "argFileName1" << argFileName1 << "\n");
+            DEBUG(dbgSys, "filename" << filename << "\n");
 
             if (filename != NULL && strlen(filename) == 0)
             {
@@ -211,8 +211,10 @@ void ExceptionHandler(ExceptionType which)
 
             if (strlen(filename) == 0) { // user argfileName from command line
                 filename = argFileName1 != NULL ? argFileName1 : argFileName2;
-                argFileName1 = NULL;
+                kernel -> tempArgv[0] = NULL;;
             }
+
+	    DEBUG(dbgSys, "Opening file: " << filename << "\n");
 
             if (filename == NULL) {
                 kernel->machine->WriteRegister(2, -1);
@@ -326,7 +328,7 @@ void ExceptionHandler(ExceptionType which)
 
             if (strlen(filename) == 0) { // user argfileName from command line
                 filename = argFileName1 != NULL ? argFileName1 : argFileName2;
-                argFileName1 = NULL;
+                kernel -> tempArgv[0] = NULL;;
             }
 
             DEBUG(dbgSys, "Start removing file: " << filename << "\n");
