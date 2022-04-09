@@ -58,6 +58,8 @@ public:
   PostOfficeInput *postOfficeIn;
   PostOfficeOutput *postOfficeOut;
 
+  char *tempArgv[5];
+
   int hostName; // machine identifier
 
 private:
