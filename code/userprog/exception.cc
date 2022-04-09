@@ -146,10 +146,6 @@ void ExceptionHandler(ExceptionType which)
             // Get the value of the filename from the address.
             int MaxFileLength = 32;
             filename = User2System(virtAddr, MaxFileLength + 1);
-<<<<<<< HEAD
-            // Check if the file name length is valid.
-            if (strlen(filename) == 0)
-=======
 
             if (strlen(filename) == 0) { // user argfileName from command line
                 filename = argFileName1 != NULL ? argFileName1 : argFileName2;
@@ -159,7 +155,6 @@ void ExceptionHandler(ExceptionType which)
             DEBUG(dbgSys, "argFileName1" << argFileName1 << "\n");
 
             if (filename != NULL && strlen(filename) == 0)
->>>>>>> dev/main
             {
                 DEBUG(dbgSys, "Invalid fileName\n");
                 kernel->machine->WriteRegister(2, -1); // Return -1 if not valid.
@@ -209,9 +204,7 @@ void ExceptionHandler(ExceptionType which)
 
             // Get the string filename from the virtAddress.
             filename = User2System(virtAddr, MaxFileLength);
-<<<<<<< HEAD
             // Call the function from the kernel to create the filename
-=======
 
             if (strlen(filename) == 0) { // user argfileName from command line
                 filename = argFileName1 != NULL ? argFileName1 : argFileName2;
@@ -224,7 +217,6 @@ void ExceptionHandler(ExceptionType which)
                 return;
             }
 
->>>>>>> dev/main
             OpenFile* file = kernel->fileSystem->Open(filename);
 
             if (file == NULL) { // Return -1 if open file fails.
