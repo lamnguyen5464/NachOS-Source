@@ -133,35 +133,34 @@ void ExceptionHandler(ExceptionType which)
         {
             char *filename;
             DEBUG(dbgSys, " CreateFile call ...\n");
-
-            int virtAddr = kernel->machine->ReadRegister(4); // Doc dia chi cua file tu thanh ghi R4
-
-            // Sao chep khong gian bo nho User sang System, voi do dang toi da la (32 + 1) bytes
+            // Read the address of the memory storing the filename.
+            int virtAddr = kernel->machine->ReadRegister(4);
+            // Get the value of the filename from the address.
             int MaxFileLength = 32;
             filename = User2System(virtAddr, MaxFileLength + 1);
-
+            // Check if the file name length is valid.
             if (strlen(filename) == 0)
             {
                 DEBUG(dbgSys, "Invalid fileName\n");
-                kernel->machine->WriteRegister(2, -1); // Return -1 vao thanh ghi R2
+                kernel->machine->WriteRegister(2, -1); // Return -1 if not valid.
                 IncreasePC();
                 return;
                 break;
             }
-
-            if (filename == NULL) // Neu khong doc duoc
+            // Check if the file name length is valid.
+            if (filename == NULL)
             {
                 DEBUG(dbgSys, "Invalid fileName\n");
-                kernel->machine->WriteRegister(2, -1); // Return -1 vao thanh ghi R2
+                kernel->machine->WriteRegister(2, -1); // Return -1 if not valid.
                 delete filename;
                 IncreasePC();
                 return;
                 break;
             }
-
-            if (!kernel->fileSystem->Create(filename)) // Tao file bang ham Create cua kernel->fileSystem, tra ve ket qua
+            // Create the file by the function from kernel.
+            if (!kernel->fileSystem->Create(filename))
             {
-                // Tao file that bai
+                // Fail to create.
                 DEBUG(dbgSys, "Failed to create file\n");
                 kernel->machine->WriteRegister(2, -1);
                 delete filename;
@@ -169,8 +168,7 @@ void ExceptionHandler(ExceptionType which)
                 return;
                 break;
             }
-
-            // Tao file thanh cong
+            // Create successfully.
             kernel->machine->WriteRegister(2, 0);
             delete filename;
             IncreasePC();
@@ -180,46 +178,38 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_Open:
         {
+            // Read the address of the memory storing the filename.
             int virtAddr = kernel->machine->ReadRegister(4);
             char *filename;
             int MaxFileLength = 32;
+            // Get the current open file id --> to store file in the new position.
             int currentFileId = kernel->fileSystem->numOfOpenedFiles;
             int lengthOfName = strlen(filename);
             int i;
 
-            // increase file iterator
-
-            kernel->fileSystem->numOfOpenedFiles = (kernel->fileSystem->numOfOpenedFiles + 1) % 10000;
-
-
+            // Get the string filename from the virtAddress.
             filename = User2System(virtAddr, MaxFileLength);
-
-            // DEBUG(dbgSys, "currentFileId: " << currentFileId << "\n");
-            // DEBUG(dbgSys, "filename: " << filename << "\n");
-
-
+            // Call the function from the kernel to create the filename
             OpenFile* file = kernel->fileSystem->Open(filename);
-            if (file == NULL) {
+
+            if (file == NULL) { // Return -1 if open file fails.
                 kernel->machine->WriteRegister(2, -1);
                 IncreasePC();
                 return;
             }
+            // Increase the number of open file.
+            kernel->fileSystem->numOfOpenedFiles = (kernel->fileSystem->numOfOpenedFiles + 1) % 10000;
+            // Store the file id opening.
             kernel->fileSystem->listOpenedFiles[currentFileId] = file;
+
+            // Create the clone variable to store the filename.
             char* cloneName = new char[100];
-
-            // copy name;
+            // Copy name.
             strcpy(cloneName, filename);
-
-            // for(i = 0; i <= lengthOfName; i++) {
-            //     cloneName[i] = filename[i];
-            // }
-            // cloneName[lengthOfName+1] = '\0';
-
             DEBUG(dbgSys, "cloneName: " << cloneName << "\n");
-            
 
+            // Store the file name opening.
             kernel->fileSystem->listOpenFileNames[currentFileId] = cloneName;
-
             kernel->machine->WriteRegister(2, currentFileId);
             IncreasePC();
             return;
@@ -227,18 +217,18 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_Close:
         {
-            OpenFileId openFileId = (OpenFileId)kernel->machine->ReadRegister(4); // Lay id cua file tu thanh ghi so 4
-
+            // Get the openFileId from the user.
+            OpenFileId openFileId = (OpenFileId)kernel->machine->ReadRegister(4);
+            // Get the OpenFile type from the openFileId.
             OpenFile *currentFile = kernel->fileSystem->listOpenedFiles[(int)openFileId];
-
-            if (currentFile == NULL)
+            if (currentFile == NULL) // If the file does not exist.
             {
                 kernel->machine->WriteRegister(2, -1);
             }
-            else
+            else // If the file exists.
             {
                 delete currentFile;
-                kernel->machine->WriteRegister(2, (int)openFileId);
+                kernel->machine->WriteRegister(2, (int)openFileId); // Return the OpenFileId of the file which is closed.
             }
             IncreasePC();
             return;
@@ -247,28 +237,35 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_Read:
         {
-            int virtAddr = kernel->machine->ReadRegister(4); 
-            int charcount = kernel->machine->ReadRegister(5); 
+            int virtAddr = kernel->machine->ReadRegister(4);
+            int charcount = kernel->machine->ReadRegister(5);
             int openFileId = (int)kernel->machine->ReadRegister(6);
             int OldPos;
             int NewPos;
             char *buf;
             int size;
 
+            // Get the OpenFile from its id.
             OpenFile *file = kernel->fileSystem->listOpenedFiles[(int)openFileId];
+            size = file->Length() + 1;
+            buf = new char[size];
 
             DEBUG(dbgSys, "Start reading:\n");
             DEBUG(dbgSys, "currentFileId: " << openFileId << "\n");
 
-            size = file->Length() + 1;
-
-            buf = new char[size];
-
-            file->Read(buf, size - 1);
-
-            System2User(virtAddr, size, buf);
-            kernel->machine->WriteRegister(2, size - 1);
-
+            // Check if the file is opened or not.
+            if (file != NULL) { // If file is opened.
+                // Call the Read function from class OpenFile to read the content of file.
+                file->Read(buf, size - 1);
+                // Pass the content of file back to the user.
+                System2User(virtAddr, size, buf);
+                // Return the length of the file's content.
+                kernel->machine->WriteRegister(2, size - 1);
+            }
+            else // If file is not opened.
+            {
+                kernel->machine->WriteRegister(2, -1);
+            }
             delete buf;
             IncreasePC();
             return;
@@ -277,24 +274,30 @@ void ExceptionHandler(ExceptionType which)
         case SC_Write:
         {
             int virtAddr = kernel->machine->ReadRegister(4);
-            int sizeOfInput = kernel->machine->ReadRegister(5); 
+            int sizeOfInput = kernel->machine->ReadRegister(5);
             int openFileId = kernel->machine->ReadRegister(6);
 
+            // Get the file from the id.
             OpenFile *file = kernel->fileSystem->listOpenedFiles[(int)openFileId];
 
-            char *buffer = User2System(virtAddr, sizeOfInput);
-
-            file->Write(buffer, sizeOfInput);
-
+            if (file != NULL) { // The file is opened.
+                // Write the content to the file.
+                char *buffer = User2System(virtAddr, sizeOfInput);
+                file->Write(buffer, sizeOfInput);
+                kernel->machine->WriteRegister(2, sizeOfInput);
+            } else { // The file is not opened.
+                kernel->machine->WriteRegister(2, -1);
+            }
             IncreasePC();
             return;
         }
 
         case SC_Remove:
         {
-            char *filename;     // name of file that will be removed
-            int virtAddr = kernel->machine->ReadRegister(4); 
+            char *filename;
+            int virtAddr = kernel->machine->ReadRegister(4);
             int MaxFileLength = 32;
+            // Get the string file name from the virt address.
             filename = User2System(virtAddr, MaxFileLength + 1);
             bool isOpen = false;
             bool isMatch = false;
@@ -304,17 +307,17 @@ void ExceptionHandler(ExceptionType which)
 
             DEBUG(dbgSys, "Start removing file: " << filename << "\n");
 
-            for(i = 0; i < 5; i++) {       // scan through all stored openFile to find the file that have the same name with current file
-                isMatch = true;     // detect if the name is matching 
+            for(i = 0; i < 10000; i++) {       // scan through all stored openFile to ensure the removed file is not opened.
+                isMatch = true;     // detect if the name is matching
 
                 char *currentFileName = kernel->fileSystem->listOpenFileNames[i];
-
-
+                // If the file is not opened --> skip
                 if (kernel->fileSystem->listOpenedFiles[i] != NULL || currentFileName == NULL ) {
                     // this file is being opened
                     continue;
                 }
-                
+
+                // the file name is not matched with the open file name --> skip.
                 if (strlen(currentFileName) != strlen(filename)) {
                     continue;
                 }
@@ -323,8 +326,6 @@ void ExceptionHandler(ExceptionType which)
                 DEBUG(dbgSys, "FileName: " << filename << "\n");
                 DEBUG(dbgSys, "currentFileName: " << filename <<"\n");
                 DEBUG(dbgSys, "isMatch: " << isMatch <<"\n");
-
-
 
                 // for(j = 0; j < strlen(currentFileName); j++) {
                 //     if (filename[j] != currentFileName[j]) {
@@ -342,39 +343,52 @@ void ExceptionHandler(ExceptionType which)
 
             DEBUG(dbgSys, "is open: " << isOpen << "\n");
 
-            if (isOpen) {
+            if (isOpen) { // if the file is opening --> can not remove.
                 DEBUG(dbgSys, "File is opening!" << "\n");
                 kernel->machine->WriteRegister(2, 0);
-            } else {
+            } else { // if the removed file is not open.
                 char *fileName = kernel->fileSystem->listOpenFileNames[indexOfFile];
 
+                // call the Remove function from the system.
                 isRemoved = kernel->fileSystem->Remove(fileName);
 
+                // Return -1 if removed failed and 0 if success.
                 if (!isRemoved) {
                     DEBUG(dbgSys, "Remove that bai" << "\n");
-                    kernel->machine->WriteRegister(2, 0);
+                    kernel->machine->WriteRegister(2, -1);
                 } else{
-                    kernel->machine->WriteRegister(2, 1);
+                    kernel->machine->WriteRegister(2, 0);
                 }
             }
-
             IncreasePC();
             return;
 
         }
 
-        case SC_Seek: 
+        case SC_Seek:
         {
-            int position = (OpenFileId)kernel->machine->ReadRegister(4);
+            int position = kernel->machine->ReadRegister(4);
             OpenFileId openFileId = (OpenFileId)kernel->machine->ReadRegister(5);
+            int seekPos = -1;
 
             OpenFile *currentFile = kernel->fileSystem->listOpenedFiles[(int)openFileId];
-
-            currentFile->Seek(position != -1 ? position : currentFile->Length());
-
+            // Check if the file is opened or not.
+            if (currentFile != NULL) {
+                // Get the position to seek to.
+                int currentFileLength = currentFile->Length();
+                seekPos = (position != -1 ? position : currentFileLength);
+                // If the seek position larger then the file length --> seek to the file length
+                if (seekPos > currentFileLength)
+                {
+                    seekPos = currentFileLength;
+                }
+                currentFile->Seek(seekPos);
+            } else {
+                DEBUG(dbgSys, "Seek fails." << "\n");
+            }
+            kernel->machine->WriteRegister(2, seekPos);
             IncreasePC();
             return;
-
         }
 
         case SC_Add:
